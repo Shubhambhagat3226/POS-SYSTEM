@@ -20,6 +20,6 @@
    - CustomUserDetails (for loading user by it email)
 
    - AuthService & AuthServiceImpl
-   - UserDto, LoginRequest, SigninRequest, AuthResponse, ErrorResponse
+   - UserDto, LoginRequest, SigninRequest, AuthResponse, ErrorResponse, UserMapper
    - UserException & GlobalExceptionHandler
    - AuthController
