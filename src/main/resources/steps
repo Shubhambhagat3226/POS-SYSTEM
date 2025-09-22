@@ -1,0 +1,25 @@
+1. Config all dependency needed in project
+   - JPA
+   - MySQL Driver
+   - Web
+   - Validation
+   - starter-mail (Sending emails)
+   - lombok
+   - security (Authentication & authorization)
+   - devtool
+   - jjwt, jjwt-impl, jjwt-jackson (JWT token generation & validation)
+   - stripe-java (Stripe payment integration)
+   - razorpay-java (Razorpay payment integration)
+
+2. For Authorization and authentication config
+   - SecurityConfig (to make our config for security)
+   - JwtValidator (for verify and validate the jwt)
+   - JwtProvider (for generating jwt token)
+   - JwtConstant (for constant variable used in jwt)
+   - User (entity) , UserRole (enum define roles) & userRepository (to access user data form DataBase)
+   - CustomUserDetails (for loading user by it email)
+
+   - AuthService & AuthServiceImpl
+   - UserDto, LoginRequest, SigninRequest, AuthResponse, ErrorResponse
+   - UserException & GlobalExceptionHandler
+   - AuthController

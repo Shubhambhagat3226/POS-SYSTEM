@@ -1,0 +1,10 @@
+package com.shu.constant;
+
+public class ApiPathConstant {
+
+    public static final String API_BASE = "/api";
+    public static final String AUTH = API_BASE + "/auth";
+    public static final String PRODUCTS = API_BASE + "/products";
+    public static final String ORDERS = API_BASE + "/orders";
+    public static final String ADMIN = API_BASE + "/admin";
+}
