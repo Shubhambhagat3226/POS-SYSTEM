@@ -23,3 +23,7 @@
    - UserDto, LoginRequest, SigninRequest, AuthResponse, ErrorResponse, UserMapper
    - UserException & GlobalExceptionHandler
    - AuthController
+
+   - UserService & UserServiceImpl
+   - UserController
+   - SwaggerConfig & OpenApiConstants (api doc but can config anytime also dependency needed)

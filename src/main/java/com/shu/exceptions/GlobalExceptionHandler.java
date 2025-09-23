@@ -4,6 +4,7 @@ import com.shu.payload.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -83,34 +84,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleUserException(UserException ex, HttpServletRequest request) {
         ErrorResponse error = new ErrorResponse(
                 LocalDateTime.now(),
-                HttpStatus.BAD_REQUEST.value(),   // or 403 if preferred
-                "User Error",
+                ex.getStatus().value(),   // or 403 if preferred
+                ex.getStatus().getReasonPhrase(),
                 ex.getMessage(),
                 request.getRequestURI()
         );
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-    }
-
-    /**
-     * Handles Spring Security's UsernameNotFoundException.
-     * This occurs when authentication fails due to a non-existent user.
-     * <p>
-     * HTTP Status: 404 (Not Found)
-     *
-     * @param ex      the UsernameNotFoundException instance
-     * @param request the HttpServletRequest to extract the request path
-     * @return a structured ErrorResponse wrapped in ResponseEntity
-     */
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex, HttpServletRequest request) {
-        ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     /**
@@ -135,4 +114,47 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
+    /**
+     * Handles authentication failures, such as an invalid JWT or incorrect password.
+     * <p>
+     * HTTP Status: 401 (Unauthorized)
+     *
+     * @param ex      the BadCredentialsException instance
+     * @param request the HttpServletRequest to extract the request path
+     * @return a structured ErrorResponse wrapped in ResponseEntity
+     */
+    @ExceptionHandler(BadCredentialsException.class) // <<< CRITICAL ADDITION
+    public ResponseEntity<ErrorResponse> handleBadCredentialsException(BadCredentialsException ex, HttpServletRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.UNAUTHORIZED.value(),
+                "Authentication Error",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
+
+    /**
+     * Handles Spring Security's UsernameNotFoundException.
+     * This occurs when authentication fails due to a non-existent user.
+     * <p>
+     * HTTP Status: 404 (Not Found)
+     *
+     * @param ex      the UsernameNotFoundException instance
+     * @param request the HttpServletRequest to extract the request path
+     * @return a structured ErrorResponse wrapped in ResponseEntity
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex, HttpServletRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

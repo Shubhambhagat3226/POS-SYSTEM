@@ -12,6 +12,8 @@ import com.shu.service.auth.AuthService;
 import com.shu.service.auth.CustomUserDetails;
 import com.shu.service.auth.JwtProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -66,10 +68,10 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse signup(SignupRequest request) throws UserException {
         User user = userRepository.findByEmail(request.getEmail());
         if (user != null) {
-            throw new UserException("Email id already register!");
+            throw new UserException("Email id already register!", HttpStatus.CONFLICT);
         }
         if (request.getRole().equals(UserRole.ROLE_ADMIN)) {
-            throw new UserException("Role admin is not allowed!");
+            throw new UserException("Role admin is not allowed!", HttpStatus.BAD_REQUEST);
         }
 
         User newUser = new User();
@@ -119,12 +121,8 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse login(LoginRequest request) throws UserException {
         UserDetails userDetails = customUserDetails.loadUserByUsername(request.getEmail());
 
-
-        if (userDetails == null) {
-            throw new UserException("Email id doesn't exits: " + request.getEmail());
-        }
         if (!passwordEncoder.matches(request.getPassword(), userDetails.getPassword())) {
-            throw new UserException("Invalid Password!");
+            throw new BadCredentialsException("Invalid Password!");
         }
 
         Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

@@ -2,6 +2,7 @@ package com.shu.configuration;
 
 import com.shu.filter.JwtValidator;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,7 +19,11 @@ import java.util.Arrays;
 import java.util.Collections;
 
 @Configuration
+@RequiredArgsConstructor // Use constructor injection for the filter
 public class SecurityConfig {
+
+    // Inject the JwtValidator as a Spring bean
+    private final JwtValidator jwtValidator;
 
     /**
      *
@@ -43,12 +48,12 @@ public class SecurityConfig {
 
                 // 2. Define which APIs need login/roles
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/**").authenticated()
-                                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        auth.requestMatchers("/api/admin/**").hasRole("ADMIN")
+                                .requestMatchers("/api/**").authenticated()
                                 .anyRequest().permitAll())
 
                 // 3. Add custom filter before Spring's BasicAuthenticationFilter
-                .addFilterBefore(new JwtValidator(),
+                .addFilterBefore(jwtValidator,
                         BasicAuthenticationFilter.class)
 
                 // 4. Disable CSRF (since we’re not using session cookies)
@@ -79,11 +84,13 @@ public class SecurityConfig {
     /**
      *
      * CORS CONFIGURATION:
-     * CORS (Cross-Origin Resource Sharing) allows your frontend
+     * CORS (Cross-Origin Resource Sharing) policy allows your frontend
      * to call your backend APIs.
      *
-     * Thia help to tell backend which frontend can request to them
+     * This policy specifies which external domains, methods, and headers are permitted
+     * to interact with the API.
      *
+     * @return A CorsConfigurationSource that provides CORS configuration per request.
      */
     private CorsConfigurationSource corsConfigurationSource() {
         return new CorsConfigurationSource() {
@@ -91,7 +98,7 @@ public class SecurityConfig {
             public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
                 CorsConfiguration cfg = new CorsConfiguration();
 
-                // Allow only your frontend
+                //  Define the list of allowed origins frontend
                 cfg.setAllowedOrigins(
                         Arrays.asList(
                                 "https://localhost:5173"

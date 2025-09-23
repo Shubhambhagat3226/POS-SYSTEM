@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.crypto.SecretKey;
@@ -34,6 +35,7 @@ import java.util.List;
  * This filter runs **once per request** (extends OncePerRequestFilter)
  * to ensure efficiency.
  */
+@Component
 public class JwtValidator extends OncePerRequestFilter {
 
     /**
