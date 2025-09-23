@@ -1,15 +1,18 @@
-package com.shu.exceptions;
+package com.shu.exceptions.handler;
 
+import com.shu.exceptions.UserException;
 import com.shu.payload.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 /**
  * GlobalExceptionHandler
@@ -23,8 +26,6 @@ import java.time.LocalDateTime;
  * <p><b>Responsibilities:</b></p>
  * <ul>
  *   <li>Standardize error responses across all REST endpoints.</li>
- *   <li>Convert custom application exceptions (like {@link UserException}) into HTTP responses with
- *       appropriate status codes.</li>
  *   <li>Handle Spring Security exceptions (like {@link org.springframework.security.core.userdetails.UsernameNotFoundException})
  *       gracefully.</li>
  *   <li>Provide a fallback handler for any uncaught exceptions to prevent internal server errors without context.</li>
@@ -69,28 +70,6 @@ import java.time.LocalDateTime;
  */
 @ControllerAdvice
 public class GlobalExceptionHandler {
-
-    /**
-     * Handles custom user-related exceptions thrown by the application.
-     * Example cases: invalid login, duplicate email, unauthorized role creation.
-     * <p>
-     * HTTP Status: 400 (Bad Request) by default.
-     *
-     * @param ex      the UserException instance containing details
-     * @param request the HttpServletRequest to extract the request path
-     * @return a structured ErrorResponse wrapped in ResponseEntity
-     */
-    @ExceptionHandler(UserException.class)
-    public ResponseEntity<ErrorResponse> handleUserException(UserException ex, HttpServletRequest request) {
-        ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
-                ex.getStatus().value(),   // or 403 if preferred
-                ex.getStatus().getReasonPhrase(),
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-    }
 
     /**
      * Handles any uncaught or unexpected exceptions in the application.
@@ -156,5 +135,56 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * Handles validation errors thrown when request payloads fail @Valid checks.
+     * <p>
+     * This typically occurs when a controller method receives an invalid DTO annotated
+     * with jakarta.validation constraints (e.g., @NotBlank, @Email, @Size).
+     * </p>
+     *
+     * <p><b>Responsibilities:</b></p>
+     * <ul>
+     *   <li>Extracts field-level errors and global object errors from the exception.</li>
+     *   <li>Formats all validation messages into a consistent response structure.</li>
+     *   <li>Returns HTTP Status 400 (Bad Request) to indicate invalid client input.</li>
+     * </ul>
+     *
+     * <p><b>Example JSON Response:</b></p>
+     * <pre>
+     * {
+     *   "timestamp": "2025-09-23T21:33:03.206",
+     *   "status": 400,
+     *   "error": "Validation Failed",
+     *   "message": "email: must be a well-formed email address; fullName: must not be blank",
+     *   "path": "/auth/signup"
+     * }
+     * </pre>
+     *
+     * @param ex      the MethodArgumentNotValidException thrown by Spring Validation
+     * @param request the HttpServletRequest to extract the request path
+     * @return a structured ErrorResponse wrapped in ResponseEntity with HTTP 400 status
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationException(
+            MethodArgumentNotValidException ex, HttpServletRequest request) {
+
+        // Collect all field errors into a single message
+        String errors = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "Validation Error",
+                errors,
+                request.getRequestURI()
+        );
+
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 }
