@@ -24,6 +24,7 @@
    - UserException & GlobalExceptionHandler
    - AuthController
 
+2.1 Users and docs (doc is optional)
    - UserService & UserServiceImpl
    - UserController
    - SwaggerConfig & OpenApiConstants (api doc but can config anytime also dependency needed)
