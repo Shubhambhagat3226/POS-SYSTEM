@@ -28,3 +28,9 @@
    - UserService & UserServiceImpl
    - UserController
    - SwaggerConfig & OpenApiConstants (api doc but can config anytime also dependency needed)
+
+2.2 Store
+   - Store , StoreContact, StoreDto, StoreStatus, StoreMapper, StoreRepository
+   - StoreService & StoreServiceImpl & StoreController
+   - StoreException, UserException, JwtAuthEntryPoint (custom exception [optional])
+   - APIResponse [optional]
