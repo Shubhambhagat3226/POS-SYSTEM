@@ -68,6 +68,12 @@
 			<optional>true</optional>
 		</dependency>
 
+<!--		local time in jwtauthentrypoint mai use krne ke liye-->
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+		</dependency>
+
 <!--		 swagger-->
 		<dependency>
 			<groupId>org.springdoc</groupId>

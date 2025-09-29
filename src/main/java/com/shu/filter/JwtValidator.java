@@ -1,13 +1,17 @@
 package com.shu.filter;
 
+import com.shu.configuration.security.JwtAuthEntryPoint;
 import com.shu.constant.JwtConstant;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -21,7 +25,7 @@ import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.util.List;
 
-/**
+/*
  * JwtValidator is a Spring Security filter that checks incoming HTTP requests
  * for a valid JWT (JSON Web Token).
  *
@@ -35,17 +39,41 @@ import java.util.List;
  * This filter runs **once per request** (extends OncePerRequestFilter)
  * to ensure efficiency.
  */
+/**
+ * JwtValidator
+ *
+ * A Spring Security filter that validates JWT tokens in HTTP requests.
+ *
+ * Responsibilities:
+ * <ul>
+ *   <li>Extracts JWT from Authorization header.</li>
+ *   <li>Validates JWT signature and expiration.</li>
+ *   <li>Extracts user details (email, roles) from token claims.</li>
+ *   <li>Sets Spring Security context with authenticated user.</li>
+ *   <li>Delegates failed authentication to {@link JwtAuthEntryPoint}.</li>
+ * </ul>
+ *
+ * Usage:
+ * <ul>
+ *   <li>Automatically invoked once per request by Spring Security.</li>
+ *   <li>Must be registered in {@link com.shu.configuration.security.SecurityConfig} before
+ *       {@link org.springframework.security.web.authentication.www.BasicAuthenticationFilter}.</li>
+ * </ul>
+ */
 @Component
+@RequiredArgsConstructor
 public class JwtValidator extends OncePerRequestFilter {
+
+    private final JwtAuthEntryPoint jwtAuthEntryPoint;
 
     /**
      * This method is called for every HTTP request.
      *
      * @param request  Incoming HTTP request
      * @param response Outgoing HTTP response
-     * @param filterChain Chain of filters
-     * @throws ServletException
-     * @throws IOException
+     * @param filterChain the chain of filters
+     * @throws ServletException in case of servlet errors
+     * @throws IOException in case of I/O errors
      */
     @Override
     protected void doFilterInternal(
@@ -87,9 +115,19 @@ public class JwtValidator extends OncePerRequestFilter {
                 // 8️. Set authentication in the SecurityContext
                 // Spring Security will now consider this user as "authenticated"
                 SecurityContextHolder.getContext().setAuthentication(auth);
-            } catch (Exception e) {
-                // 9️. If anything fails (invalid token, expired, wrong signature), throw error
-                throw new BadCredentialsException("Invalid JWT...");
+            } catch (ExpiredJwtException ex) {
+                // 👇 Call entrypoint instead of throwing
+                jwtAuthEntryPoint.commence(
+                        request, response,
+                        new BadCredentialsException("JWT token expired", ex)
+                );
+                return; // stop filter chain
+            } catch (JwtException ex) {
+                jwtAuthEntryPoint.commence(
+                        request, response,
+                        new BadCredentialsException("Invalid JWT token", ex)
+                );
+                return;
             }
         }
 

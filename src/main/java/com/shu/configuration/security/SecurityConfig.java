@@ -1,4 +1,4 @@
-package com.shu.configuration;
+package com.shu.configuration.security;
 
 import com.shu.filter.JwtValidator;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,12 +18,37 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import java.util.Arrays;
 import java.util.Collections;
 
+/**
+ * SecurityConfig
+ *
+ * Configures Spring Security for the POS application.
+ *
+ * Responsibilities:
+ * <ul>
+ *   <li>Defines which endpoints require authentication and which are public.</li>
+ *   <li>Configures role-based access for endpoints (e.g., ADMIN, USER).</li>
+ *   <li>Integrates JWT validation via {@link JwtValidator} filter.</li>
+ *   <li>Configures session management as stateless for JWT usage.</li>
+ *   <li>Sets up CORS policy for cross-origin requests.</li>
+ *   <li>Provides a {@link PasswordEncoder} bean for hashing passwords.</li>
+ * </ul>
+ *
+ * Usage:
+ * <ul>
+ *   <li>Spring Boot automatically loads this configuration class due to {@link Configuration}.</li>
+ *   <li>{@link SecurityFilterChain} bean is used by Spring Security to enforce rules.</li>
+ *   <li>JwtValidator filter runs before {@link BasicAuthenticationFilter} to validate tokens.</li>
+ * </ul>
+ */
 @Configuration
 @RequiredArgsConstructor // Use constructor injection for the filter
 public class SecurityConfig {
 
     // Inject the JwtValidator as a Spring bean
     private final JwtValidator jwtValidator;
+
+    private final JwtAuthEntryPoint jwtAuthEntryPoint;
+
 
     /**
      *
@@ -52,14 +77,18 @@ public class SecurityConfig {
                                 .requestMatchers("/api/**").authenticated()
                                 .anyRequest().permitAll())
 
-                // 3. Add custom filter before Spring's BasicAuthenticationFilter
+                // 3. Add exception handler for token invalid at filter level
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(jwtAuthEntryPoint))
+
+                // 4. Add custom filter before Spring's BasicAuthenticationFilter
                 .addFilterBefore(jwtValidator,
                         BasicAuthenticationFilter.class)
 
-                // 4. Disable CSRF (since we’re not using session cookies)
+                // 5. Disable CSRF (since we’re not using session cookies)
                 .csrf(AbstractHttpConfigurer::disable)
 
-                // 5. Enable CORS (so frontend on another port/domain can call APIs)
+                // 6. Enable CORS (so frontend on another port/domain can call APIs)
                 .cors(cors ->
                         cors.configurationSource(corsConfigurationSource()))
 
