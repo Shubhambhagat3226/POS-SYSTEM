@@ -1,5 +1,6 @@
 package com.shu.exceptions;
 
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -9,6 +10,7 @@ import org.springframework.http.HttpStatus;
  * Now includes an HttpStatus to allow for dynamic and semantically correct
  * error responses from the GlobalExceptionHandler.
  */
+@Getter
 public class UserException extends RuntimeException{
 
     private final HttpStatus status;
@@ -32,7 +34,4 @@ public class UserException extends RuntimeException{
         this.status = status;
     }
 
-    public HttpStatus getStatus() {
-        return status;
-    }
 }

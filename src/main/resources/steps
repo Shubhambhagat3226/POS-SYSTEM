@@ -34,3 +34,10 @@
    - StoreService & StoreServiceImpl & StoreController
    - StoreException, UserException, JwtAuthEntryPoint (custom exception [optional])
    - APIResponse [optional]
+
+2.3 Product and categories
+   - product, productDto, productRepository, productMapper
+   - productService & productServiceImpl & productController
+   - category, categoryDTO, categoryRepository, categoryMapper
+   - categoryService & categoryServiceImpl & categoryController
+   - productException & productExceptionHandler,  categoryException & categoryExceptionHandler

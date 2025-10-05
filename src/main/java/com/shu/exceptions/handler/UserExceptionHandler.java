@@ -3,6 +3,8 @@ package com.shu.exceptions.handler;
 import com.shu.exceptions.UserException;
 import com.shu.payload.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -14,6 +16,7 @@ import java.time.LocalDateTime;
  * Handles user-related custom exceptions
  */
 @ControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class UserExceptionHandler {
 
     /**
@@ -30,8 +33,8 @@ public class UserExceptionHandler {
     public ResponseEntity<ErrorResponse> handleUserException(UserException ex, HttpServletRequest request) {
         ErrorResponse error = new ErrorResponse(
                 LocalDateTime.now(),
-                ex.getStatus().value(),   // or 403 if preferred
-                ex.getStatus().getReasonPhrase(),
+                ex.getStatus().value(),
+                "User Error",
                 ex.getMessage(),
                 request.getRequestURI()
         );

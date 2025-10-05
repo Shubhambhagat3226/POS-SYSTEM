@@ -2,6 +2,8 @@ package com.shu.exceptions.handler;
 
 import com.shu.exceptions.StoreException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
 import com.shu.payload.response.ErrorResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -24,6 +26,7 @@ import java.time.LocalDateTime;
  * </pre>
  */
 @ControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class StoreExceptionHandler {
 
     /**
